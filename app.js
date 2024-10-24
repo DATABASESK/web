@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const apiUrl = 'https://final-rj4x.onrender.com/netflix'; // API URL for movies
+  const apiUrl = 'https://final-rj4x.onrender.com/multi'; // API URL for movies
   const movieGrid = document.getElementById('movies-grid');
 
   // Fetch movies from API
@@ -40,34 +40,11 @@ document.addEventListener("DOMContentLoaded", () => {
     movieItem.appendChild(movieImage);
     movieItem.appendChild(movieTitle);
 
-    // Add click event to show video links when the movie is clicked
+    // Add click event to open the movie's video link
     movieItem.addEventListener('click', () => {
-      displayVideos(movie.videos, movie.name);
+      window.open(movie.link, '_blank');
     });
 
     return movieItem;
-  };
-
-  // Display videos for the selected movie
-  const displayVideos = (videos, movieName) => {
-    const videoContainer = document.getElementById('video-container');
-    videoContainer.innerHTML = ''; // Clear previous videos
-
-    const title = document.createElement('h2');
-    title.textContent = `Videos for: ${movieName}`;
-    videoContainer.appendChild(title);
-
-    videos.forEach(video => {
-      const videoItem = document.createElement('div');
-      videoItem.classList.add('video-item');
-
-      const videoLink = document.createElement('a');
-      videoLink.href = video.link;
-      videoLink.target = '_blank';
-      videoLink.textContent = video.title;
-
-      videoItem.appendChild(videoLink);
-      videoContainer.appendChild(videoItem);
-    });
   };
 });
