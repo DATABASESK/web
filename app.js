@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const apiUrl = 'https://final-rj4x.onrender.com/tamil'; // API URL for movies
+  const apiUrl = 'https://final-rj4x.onrender.com/netflix'; // API URL for movies
   const movieGrid = document.getElementById('movies-grid');
 
   // Fetch movies from API
