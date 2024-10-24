@@ -40,11 +40,34 @@ document.addEventListener("DOMContentLoaded", () => {
     movieItem.appendChild(movieImage);
     movieItem.appendChild(movieTitle);
 
-    // Add click event to open the movie's video link
+    // Add click event to show video links when the movie is clicked
     movieItem.addEventListener('click', () => {
-      window.open(movie.link, '_blank');
+      displayVideos(movie.videos, movie.name);
     });
 
     return movieItem;
+  };
+
+  // Display videos for the selected movie
+  const displayVideos = (videos, movieName) => {
+    const videoContainer = document.getElementById('video-container');
+    videoContainer.innerHTML = ''; // Clear previous videos
+
+    const title = document.createElement('h2');
+    title.textContent = `Videos for: ${movieName}`;
+    videoContainer.appendChild(title);
+
+    videos.forEach(video => {
+      const videoItem = document.createElement('div');
+      videoItem.classList.add('video-item');
+
+      const videoLink = document.createElement('a');
+      videoLink.href = video.link;
+      videoLink.target = '_blank';
+      videoLink.textContent = video.title;
+
+      videoItem.appendChild(videoLink);
+      videoContainer.appendChild(videoItem);
+    });
   };
 });
