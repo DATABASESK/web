@@ -1,17 +1,257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie App</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: black;
+      color: white;
+    }
+
+    header {
+      background-color: #222;
+      padding: 10px;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    header a:hover {
+      background-color: orange;
+    }
+
+    .active-link {
+      background-color: orange;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .search-container input {
+      width: 60%;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+    }
+
+    .grid-item {
+      background-color: #222;
+      border-radius: 5px;
+      overflow: hidden;
+      text-align: center;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .grid-item img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+
+    .grid-item p {
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .grid-item:focus {
+      border: 2px solid orange;
+    }
+
+    /* Loading Spinner Styles */
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid orange;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>SK MOVIES</h1>
-        <div class="movies-grid" id="movies-grid"></div>
-    </div>
-    
-    <script src="app.js"></script>
+  <header>
+    <a href="#" onclick="navigateTo('tamil')" id="link-tamil">Tamil Movies</a>
+    <a href="#" onclick="navigateTo('kids')" id="link-kids">Kids Movies</a>
+    <a href="#" onclick="navigateTo('hollywood')" id="link-hollywood">Hollywood</a>
+    <a href="#" onclick="navigateTo('live')" id="link-live">Live TV</a>
+    <a href="#" onclick="navigateTo('multi')" id="link-multi">Multi-language</a>
+    <a href="#" onclick="navigateTo('series')" id="link-series">Series</a>
+  </header>
+  <div id="app"></div>
+
+  <script>
+    const app = document.getElementById('app');
+    const headerLinks = document.querySelectorAll("header a");
+
+    const apiUrls = {
+      tamil: "https://final-rj4x.onrender.com/tamil",
+      kids: "https://g3-m4eq.onrender.com/PRIVATE",
+      hollywood: "https://final-rj4x.onrender.com/Hollywood",
+      live: "https://g3-m4eq.onrender.com/TV",
+      multi: "https://final-rj4x.onrender.com/multi",
+      series: "https://pcmirror.cc/home"  // Link for Series section
+    };
+
+    let currentSection = null;
+    let currentIndex = 0;
+
+    // Handle navigation
+    function navigateTo(section) {
+      history.pushState({ section }, "", `#${section}`);
+      loadSection(section);
+    }
+
+    // Show loading spinner
+    function showLoading() {
+      app.innerHTML = `
+        <div class="loading-spinner">
+          <div class="spinner"></div>
+        </div>
+      `;
+    }
+
+    // Load Section
+    function loadSection(section) {
+      showLoading();  // Display loading spinner while waiting for data
+      currentSection = section;
+      const apiUrl = apiUrls[section];
+
+      if (section === 'series') {
+        // For series section, open the external website
+        window.open(apiUrl, '_blank');
+      } else {
+        // For other sections, fetch the movie data
+        fetch(apiUrl)
+          .then((response) => response.json())
+          .then((movies) => {
+            app.innerHTML = `
+              <div class="container">
+                <div class="search-container">
+                  <input type="text" id="search" placeholder="Search movies..." oninput="filterMovies()">
+                </div>
+                <div class="grid" id="movieGrid"></div>
+              </div>
+            `;
+            const grid = document.getElementById('movieGrid');
+            movies.forEach((movie, index) => {
+              const movieItem = document.createElement('div');
+              movieItem.className = 'grid-item';
+              movieItem.setAttribute("tabindex", "0"); // Make item focusable
+              movieItem.innerHTML = `
+                <img src="${movie.uri}" alt="${movie.name}">
+                <p>${movie.name}</p>
+                <a href="${movie.link}" class="video-link" target="_blank" style="display:none;">Watch Video</a>  <!-- Hidden link for video -->
+              `;
+              grid.appendChild(movieItem);
+
+              // Open the video link only when clicked on the image
+              movieItem.addEventListener('click', () => {
+                const videoLink = movieItem.querySelector('.video-link');
+                if (videoLink) {
+                  window.open(videoLink.href, '_blank');
+                }
+              });
+
+              movieItem.addEventListener('focus', () => currentIndex = index);
+            });
+          });
+      }
+    }
+
+    // Handle Popstate (Back Button in Browser)
+    window.onpopstate = (event) => {
+      if (event.state && event.state.section) {
+        loadSection(event.state.section);
+      } else {
+        showLoading();
+      }
+    };
+
+    // Filter Movies
+    function filterMovies() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const items = document.querySelectorAll('.grid-item');
+      items.forEach((item) => {
+        const name = item.querySelector('p').textContent.toLowerCase();
+        item.style.display = name.includes(query) ? '' : 'none';
+      });
+    }
+
+    // Handle Keydown Events for Navigation
+    document.addEventListener('keydown', (e) => {
+      const gridItems = document.querySelectorAll('.grid-item');
+      const links = document.querySelectorAll('header a');
+
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        // Navigate through header links
+        if (links.length > 0) {
+          const newIndex = (currentIndex + (e.key === 'ArrowRight' ? 1 : -1) + links.length) % links.length;
+          links[newIndex].focus();
+        }
+      } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        // Navigate through grid items
+        const grid = document.getElementById('movieGrid');
+        const gridItemsArray = Array.from(gridItems);
+        const newIndex = (currentIndex + (e.key === 'ArrowDown' ? 1 : -1) + gridItemsArray.length) % gridItemsArray.length;
+        gridItemsArray[newIndex].focus();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        // Select item
+        const focusedItem = document.activeElement;
+        if (focusedItem.classList.contains('grid-item')) {
+          const videoLink = focusedItem.querySelector('.video-link');
+          if (videoLink) {
+            window.open(videoLink.href, '_blank');
+          }
+        }
+      }
+    });
+
+    // Initial Load
+    const initialSection = location.hash.replace("#", "") || null;
+    if (initialSection && apiUrls[initialSection]) {
+      navigateTo(initialSection);
+    } else {
+      showLoading(); // Show loading spinner by default
+    }
+  </script>
 </body>
 </html>
